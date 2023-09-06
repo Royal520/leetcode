@@ -3,7 +3,8 @@
   <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
   <component name="CidrRootsConfiguration">
     <sourceRoots>
-      <file path="$PROJECT_DIR$/leetcode/codefun" />
+      <file path="$PROJECT_DIR$/leetcode" />
+      <file path="$PROJECT_DIR$/leetcode/editor/cn/codefun" />
       <file path="$PROJECT_DIR$/leetcode/leetcode" />
     </sourceRoots>
   </component>
