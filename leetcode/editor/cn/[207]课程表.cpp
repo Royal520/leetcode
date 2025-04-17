@@ -5,60 +5,51 @@ using namespace std;
 //leetcode submit region begin(Prohibit modification and deletion)
 class Solution {
 public:
-    vector<vector<int>> edges;
-    vector<int> indeg;
-
-    bool canFinish(int numCourses, vector<vector<int>> &prerequisites) {
-        edges.resize(numCourses);
-        indeg.resize(numCourses);
-        for (const auto &item: prerequisites) {
-            indeg[item[1]]++;
-            edges[item[0]].push_back(item[1]);
+    bool hasTrailingZeros(vector<int>& nums) {
+        int ans=0;
+        for (const auto &item: nums){
+            if (item%2==1)ans++;
         }
-        queue<int> q;
-        for (int i = 0; i < numCourses; ++i) {
-            if (indeg[i] == 0)q.push(i);
+        return ans>=2;
+    }
+    static bool cmp(pair<char,int>&a,pair<char,int>&b){
+        if(a.second==b.second)return a.first<b.first;
+        return a.second>b.second;
+    }
+    int maximumLength(string str) {
+        map<char,int> mp;
+        bool find= false;
+        for (const auto &item: str){
+            mp[item]++;
+            if(mp[item]>=3)find= true;
         }
-        int visited = 0;
-        while (!q.empty()) {
-            ++visited;
-            int front = q.front();
-            q.pop();
-            for (const auto &item: edges[front]) {
-                indeg[item]--;
-                if (indeg[item] == 0)q.push(item);
+        if(!find)return -1;
+        vector<pair<char,int>>vec;
+        for (const auto &item: mp){
+            if(item.second>3) vec.emplace_back(item);
+        }
+        std::sort(vec.begin(), vec.end(), cmp);
+        int ans=1;
+        for (const auto &item: vec){
+            char cur=item.first;
+            for (int i = max(ans,2); i <= item.second-2; ++i) {
+                if(i+2>item.second)break;
+                string result(i, cur);
+                if(findStr(str,result))ans= max(ans,i);
+                else break;
             }
         }
-        return visited == numCourses;
+        return ans;
     }
-
-    int numberOfPoints(vector<vector<int>> &nums) {
-        set<int> q;
-        for (const auto &item: nums) {
-            for (int i = item.front(); i <= item.back(); ++i) {
-                q.insert(i);
-            }
+    bool findStr(string inputString,string targetSubstring ){
+        int count = 0;
+        size_t pos = 0;
+        while ((pos = inputString.find(targetSubstring, pos)) != std::string::npos) {
+            count++;
+            pos ++;
         }
-        return q.size();
-    }
-
-    bool isReachableAtTime(int sx, int sy, int fx, int fy, int t) {
-        int minT = 0;
-        minT = max(abs(fx - sx), abs(fy - sy));
-        if (minT == 0 && t == 1)return false;
-        return minT <= t;
-    }
-
-    int minimumMoves(vector<vector<int>> &grid) {
-
-    }
-
-    void dfs(vector<vector<int>> &grid) {
-
-    }
-
-    bool inArea(int i, int j, vector<vector<int>> &grid) {
-        return i >= 0 & i < grid.size() && j >= 0 && j < grid[0].size();
+        if (count >= 3)return true;
+        return false;
     }
 };
 //leetcode submit region end(Prohibit modification and deletion)
@@ -68,8 +59,10 @@ int main() {
     Solution solution = *new Solution();
     clock_t start, end;
     start = clock();
-    cout << solution.isReachableAtTime(1, 4, 1, 3, 1) << endl;
+    string str="aabcaabaaa";
+    cout<<solution.maximumLength(str)<<endl;
     end = clock();
     cout << "spend " << double(end - start) / CLOCKS_PER_SEC * 1000 << " ms" << endl;
     return 0;
 }
+
