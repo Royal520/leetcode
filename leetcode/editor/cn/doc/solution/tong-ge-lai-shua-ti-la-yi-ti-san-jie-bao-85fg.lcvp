@@ -1,0 +1,240 @@
+今天是我坚持写题解的第 39 天！
+
+![girl-6398258_640](https://pic.leetcode-cn.com/1631431940-qmcaZo-file_1631431940340)
+
+# 方法一、暴力（超时）
+
+首先，拿到这道题，我们能想到的最简单的办法就是深度优先搜索，或者叫暴搜。
+
+我们先考虑不带星号的情况，这时候我们只要分别统计左括号和右括号的数量，最后判断左括号是否等于右括号即可，当然，如果中间遇到了右括号比左括号数量多了，说明先出现了未经匹配的右括号，这种情况直接返回即可。
+
+现在多了个星号，它可以代表左括号、右括号、空，这三种只要有一种满足最后左右括号相等即可，那么，很简单，我们就尝试着让它分别代表左括号、右括号、空往下搜索即可。
+
+请看代码，我们使用一个 count 字段统一代表左右括号的数量，遇到左括号时加一，遇到右括号时减一：
+
+* java
+
+```java
+class Solution {
+    public boolean checkValidString(String s) {
+        if (s.isEmpty()) return true;
+        int n = s.length();
+        return dfs(s, 0, 0);
+    }
+
+    private boolean dfs(String s, int i, int count) {
+        int n = s.length();
+        if (count < 0) {
+            return false;
+        }
+        if (i >= n) {
+            if (count == 0) {
+                return true;
+            }
+            return false;
+        }
+
+        boolean ans;
+        if (s.charAt(i) == '(') {
+            ans = dfs(s, i + 1, count + 1);
+        } else if (s.charAt(i) == ')') {
+            ans = dfs(s, i + 1, count - 1);
+        } else {
+            ans = dfs(s, i + 1, count) || dfs(s, i + 1, count + 1) || dfs(s, i + 1, count - 1);
+        }
+
+        return ans;
+    }
+}
+```
+
+使用暴搜会卡在第 79 个用例，原因是如果 `*` 号过多，算法会退化到 $O(3^n)$ 时间复杂度。
+
+![image-20210912142113174](https://pic.leetcode-cn.com/1631431940-rwDJUD-file_1631431940292)
+
+# 方法二、记忆化搜索（通过）
+
+通过方法一，可以发现，存在 `*` 的时候会出现大量的重复计算。
+
+比如，以 `****()))` 为例，计算到第四个 `*` 的时候，假设 `count=1` ，这个 `1` 有可能是前面任意一个位置贡献的，也有可能是前面三个位置有任意两个位置是左括号，另一个位置是右括号，但是不管前面怎么变化，对于后面的计算它们的结果是一样的，所以，我们可以在暴搜的基础上加上记忆化，所以，又称为 **记忆化搜索**。
+
+![image-20210912142903424](https://pic.leetcode-cn.com/1631431940-NlIoNI-file_1631431940371)
+
+记忆化搜索的过程呢，也很简单，在原来 `dfs` 方法签名的基础上，看哪些是变的参数，拿出来声明一个缓存数组即可。
+
+比如，我们上面的例子中，变化的参数有 `i` 和 `count` ，所以，声明一个二维数组 `memo = int[n][n+1]` ，注意第二维考虑全是左括号的情况下，一共有 `n` 个左括号，所以，声明为 `n+1` 的长度，当然，这种情况我们也可以剪枝，当检测到左括号的长度已经大于给定字符串一半的长度了，直接返回false也是可以的。
+
+请看代码：
+
+* java
+
+```java
+class Solution {
+    public boolean checkValidString(String s) {
+        if (s.isEmpty()) return true;
+        int n = s.length();
+        int[][] memo = new int[n][n + 1];
+        return dfs(s, 0, 0, memo);
+    }
+
+    private boolean dfs(String s, int i, int count, int[][] memo) {
+        int n = s.length();
+        if (count < 0 || count > n / 2) {
+            return false;
+        }
+        if (i >= n) {
+            if (count == 0) {
+                return true;
+            }
+            return false;
+        }
+
+        if (memo[i][count] != 0) {
+            return memo[i][count] == 1;
+        }
+
+        boolean ans;
+        if (s.charAt(i) == '(') {
+            ans = dfs(s, i + 1, count + 1, memo);
+        } else if (s.charAt(i) == ')') {
+            ans = dfs(s, i + 1, count - 1, memo);
+        } else {
+            ans = dfs(s, i + 1, count, memo) || dfs(s, i + 1, count + 1, memo) || dfs(s, i + 1, count - 1, memo);
+        }
+
+        memo[i][count] = ans ? 1 : -1;
+
+        return ans;
+    }
+}
+```
+
+- 时间复杂度：$O(n^2)$，考虑最坏的情况下，最后一个位置会搜索 `n` 次，即 `count` 从 `0` 到 `n`。
+- 空间复杂度：$O(n^2)$，缓存占用 $O(n^2)$ 的额外空间，递归栈占用 $O(n)$ 的空间，所以，总的额外空间复杂度为 $O(n^2)$。
+
+运行结果如下：
+
+![image-20210912102856818](https://pic.leetcode-cn.com/1631431940-uUmjzJ-file_1631431940345)
+
+# 方法三、动态规划
+
+所以，能够使用记忆化搜索的方法都可以转换成动态规划，转动态规划的过程也非常简单，把 `memo` 换成 `dp` 即可。
+
+所以，我们可以这样定义动态规划：
+
+- 状态定义，`dp[i][c]`表示前 `i` 个字符可用的左括号为 `c` 的情况下最终是否可以生成合法的括号字符串，有点难拗口，我们换个说法，如果前 `i` 个字符有 `c` 个可用的左括号，也就是右边我们需要添加 `c` 个右括号才能保证最终的字符串是合法的。（这里有点难描述，可以与上面的记忆化搜索结合起来理解）
+- 状态转移：与记忆化搜索的三个分支对应：
+  1. 如果当前字符为 `(`，那么，`dp[i][c]=dp[i-1][c-1]`。
+  2. 如果当前字符为 `)`，那么，`dp[i][c]=dp[i-1][c+1]`，前面有 `c+1` 个左括号，消掉当前这个右括号，还剩 `c` 个左括号。
+  3. 如果当前字符为 `*`，那么，`dp[i][c]=dp[i-1][c] || dp[i-1][c-1] || dp[i-1][c+1]`。
+- 初始状态：为了方便，我们将 `dp` 数组第一维的长度设置为 `n+1`，这样显然可以使用 `dp[0][0]=true` 作为初始值。
+- 返回值：`dp[n][0]`，前 `n` 个字符最终可用的左括号正好为 `0` ，也就是左右括号完全匹配了。
+- 优化：可以看到 `dp[i]` 只与 `i-1` 有关，所以，我们可以声明一个长度为 `2` 的滚动数组。
+
+我们先看未优化之前的代码：
+
+* java
+
+```java
+class Solution {
+    public boolean checkValidString(String s) {
+        int n = s.length();
+        boolean[][] dp = new boolean[n + 1][n + 1];
+        dp[0][0] = true;
+
+        // i 表示前i个，不是s的下标
+        for (int i = 1; i <= n; i++) {
+            // 前i个字符最多只会有i个左括号
+            for (int c = 0; c <= i; c++) {
+                char ch = s.charAt(i - 1);
+                if (ch == '(') {
+                    // 当前为左括号了，所以，左括号的数量肯定不会为0
+                    if (c > 0) {
+                        dp[i][c] = dp[i - 1][c - 1];
+                    }
+                } else if (ch == ')') {
+                    if (c + 1 < n + 1) {
+                        dp[i][c] = dp[i - 1][c + 1];
+                    }
+                } else if (ch == '*') {
+                    dp[i][c] = dp[i - 1][c];
+                    if (c > 0) {
+                        dp[i][c] = dp[i][c] || dp[i - 1][c - 1];
+                    }
+                    if (c + 1 < n + 1) {
+                        dp[i][c] = dp[i][c] || dp[i - 1][c + 1];
+                    } 
+                }
+            }
+        }
+
+        return dp[n][0];
+    }
+}
+```
+
+- 时间复杂度：$O(n^2)$，两层循环。
+- 空间复杂度：$O(n^2)$，dp 数组额外占用。
+
+运行结果：
+
+![image-20210912151855199](https://pic.leetcode-cn.com/1631431940-CKErrr-file_1631431940361)
+
+我们再看优化之后的代码：
+
+* java
+
+```java
+class Solution {
+    public boolean checkValidString(String s) {
+        int n = s.length();
+        boolean[][] dp = new boolean[2][n + 1];
+        dp[0][0] = true;
+
+        // i 表示前i个，不是s的下标
+        for (int i = 1; i <= n; i++) {
+            // 重新初始化供这一轮的使用
+            Arrays.fill(dp[i & 1], false);
+            // 前i个字符最多只会有i个左括号
+            for (int c = 0; c <= i; c++) {
+                char ch = s.charAt(i - 1);
+                if (ch == '(') {
+                    // 当前为左括号了，所以，左括号的数量肯定不会为0
+                    if (c > 0) {
+                        dp[i & 1][c] = dp[(i - 1) & 1][c - 1];
+                    }
+                } else if (ch == ')') {
+                    if (c + 1 < n + 1) {
+                        dp[i & 1][c] = dp[(i - 1) & 1][c + 1];
+                    }
+                } else if (ch == '*') {
+                    dp[i & 1][c] = dp[(i - 1) & 1][c];
+                    if (c > 0) {
+                        dp[i & 1][c] = dp[i & 1][c] || dp[(i - 1) & 1][c - 1];
+                    }
+                    if (c + 1 < n + 1) {
+                        dp[i & 1][c] = dp[i & 1][c] || dp[(i - 1) & 1][c + 1];
+                    }
+                }
+            }
+        }
+
+        return dp[n & 1][0];
+    }
+}
+```
+
+- 时间复杂度：$O(n ^ 2)$。
+- 空间复杂度：$O(n)$。
+
+运行结果如下，可以看到动态规划比记忆化搜索整体还慢了，那是因为题目限定的字符串的长度最大只有100。
+
+![image-20210912152312023](https://pic.leetcode-cn.com/1631431940-XOrcmF-file_1631431940458)
+
+# 最后
+
+当然，这道题最简单的做法是通过贪心来求解，大家可以看官方题解，我们这里主要讲解记忆化转动态规划的过程。
+
+**如果对你有帮助，请点个赞吧，谢谢^^**
+
+也可以[关注我](https://leetcode-cn.com/u/tong-zhu/)，每日分享题解，一起刷题，一起拿全家桶。

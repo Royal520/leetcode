@@ -1,0 +1,59 @@
+# 题目
+
+## 2678. 老人的数目
+
+给你一个下标从 `0` 开始的字符串 `details` 。`details` 中每个元素都是一位乘客的信息，信息用长度为 `15` 的字符串表示，表示方式如下：
+
+- 前十个字符是乘客的手机号码。
+- 接下来的一个字符是乘客的性别。
+- 接下来两个字符是乘客的年龄。
+- 最后两个字符是乘客的座位号。
+
+请你返回乘客中年龄 **严格大于 `60` 岁** 的人数。
+
+# 题目分析
+
+这道题主要是对字符串信息的提取。
+由于字符串给定的信息固定在下标`11`和`12`位给出年龄信息，因此我们可以提取这两位的字符并得到对应的年龄，并进行判断。
+
+![image.png](https://pic.leetcode.cn/1697992794-oCvBbs-image.png)
+
+# 代码
+
+* []
+
+```Java
+class Solution {
+    public int countSeniors(String[] details) {
+        int cnt = 0;
+        for(String detail: details){
+            cnt += (detail.charAt(11) - '0') * 10 + (detail.charAt(12) - '0') > 60 ? 1: 0;  // 提取年龄信息并判断
+        }
+        return cnt;
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def countSeniors(self, details: List[str]) -> int:
+        return len([det for det in details if int(det[11: 13]) > 60])   # 提取年龄信息并判断
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    int countSeniors(vector<string>& details) {
+        int cnt = 0;
+        for(string detail: details){
+            cnt += (detail[11] - '0') * 10 + (detail[12] - '0') > 60;  // 提取年龄信息并判断
+        }
+        return cnt;
+    }
+};
+```
+

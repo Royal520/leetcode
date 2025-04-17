@@ -1,0 +1,156 @@
+对 [官解](https://leetcode.cn/problems/repeated-dna-sequences/solutions/1035568/zhong-fu-de-dnaxu-lie-by-leetcode-soluti-z8zn/?envType=daily-question&envId=2023-11-05) 的理解与补充
+
+# 题目
+
+## 187. 重复的DNA序列
+
+**DNA序列** 由一系列核苷酸组成，缩写为 `'A'`, `'C'`, `'G'` 和 `'T'`.。
+
+例如，`"ACGAATTCCG"` 是一个 **DNA序列** 。
+- 在研究 `DNA` 时，识别 `DNA` 中的重复序列非常有用。
+
+给定一个表示 **DNA序列** 的字符串 `s` ，返回所有在 `DNA` 分子中出现不止一次的 **长度为 `10`** 的序列(子字符串)。你可以按 **任意顺序** 返回答案。
+
+# 题目分析
+
+这道题由于它对子串的长度进行了限制（长度为10），因此我们可以通过滑动窗口的方式依次枚举所有子串，并用一个哈希表统计每个子串出现的个数，如果有一个子串第二次出现即为目标子串。
+为了避免相同子串重复统计，我们 **只在子串第二次出现时加入结果列表**。【第三次及之后出现的无需要重复加入了】
+
+![image.png](https://pic.leetcode.cn/1699173363-HdQNTx-image.png)
+
+但是，对于子串的提取和字符的拼接、移除对于有些语言来说比较费时。由于字符串中只有四个字母，我们以二进制的方式对四个字母 **进行编码**，即
+
+* 
+
+```
+A -> 00
+C -> 01
+G -> 10
+T -> 11
+```
+
+由于子串长度为 `10`，因此对子串中的每个字母编码后的子串二进制哈希值共 `20` 位。我们就可以用一个 `int` 值来表示每个子串编码结果，而不用提取子串。
+
+![image.png](https://pic.leetcode.cn/1699173522-XsnMNF-image.png)
+
+那么对于基于滑动窗口的哈希值变化与子串的字符变化是类似的，当我们要往窗口中加入一个字母时，子串哈希值的变化如下：
+- 首先你要高两位的移除掉，由于 `int` 值共 `32` 位，而我们只需要用到后 `20` 位。因此移除高两位不能只是简单的对数值进行右移，而是要把高两位置为 `0`，其他十八位保持不变；这个时候就需要用到位与运算，`0` 与任何数为 `0`，`1` 与任何数保持。因此我们需要将哈希值的高两位与 `0` 位与，其他十八位与 `1` 位与，那么整体就是与 `(2^18) - 1` 这个数进行 **位与**。
+
+  ![image.png](https://pic.leetcode.cn/1699174395-GadLFb-image.png)
+
+- 然后我们把剩下的十八位整体左移；
+- 最后把新加入字母对应的两位添加到低两位；由于低两位为 `0`，`0`或任何数保持，因此通过 **位或** 的方式将新的两位加入。
+
+![image.png](https://pic.leetcode.cn/1699174974-qrshpe-image.png)
+
+# 代码
+
+* []
+
+```Java
+class Solution {
+    private final int CLEAR_FLAG = (1 << 18) - 1;   // 清除子串哈希值高两位的标志位
+
+    public List<String> findRepeatedDnaSequences(String s) {
+        List<String> res = new ArrayList<>();
+        int[] substrCounts = new int[1 << 20];      // 记录出现过的子串哈希值   
+        int n = s.length();
+        int substr = 0;     // 当前子串哈希值
+        int left = 0;       // 当前子串的起点
+        for(int right = 0; right <= n; right++){
+            if(right - left == 10){
+                // 得到一个长度为10的子串    
+                if(substrCounts[substr] == 1){      
+                    res.add(s.substring(left, right));  // 子串第二次出现，加入列表；同时如果出现了多次也不会重复添加
+                }   
+                substrCounts[substr]++;     // 统计当前子串哈希值出现次数
+                substr &= CLEAR_FLAG;       // 清除高两位，相当于滑动窗口去除最左端的字符
+                left++;     // 子串起点右移
+            }
+            if(right == n)break;    // 右边界遍历子串结束，退出
+            substr <<= 2;           // 当前哈希值二进制整体右移两位，用来加入新值
+            substr |= getCharHash(s.charAt(right));     // 获取当前右边界指向的字符的哈希值，并加入子串哈希值中
+        }
+        return res;
+
+    }
+
+    // 将字符A,C,G,T分别编码成0,1,2,3
+    private int getCharHash(char ch){
+        if(ch == 'A')return 0;
+        if(ch == 'C')return 1;
+        if(ch == 'G')return 2;
+        return 3;
+    }
+}
+```
+
+* []
+
+```Python
+CLEAR_FLAG = (1 << 18) - 1   # 清除子串哈希值高两位的标志位
+CHAR_HASH = {'A': 0, 'C': 1, 'G': 2, 'T': 3}    # 将字符A,C,G,T分别编码成0,1,2,3
+
+class Solution:
+    def findRepeatedDnaSequences(self, s: str) -> List[str]:
+        res = []
+        substr_counts = {}      # 记录出现过的子串哈希值   
+        n = len(s)
+        substr = 0     # 当前子串哈希值
+        left = 0       # 当前子串的起点
+        for right in range(n + 1):
+            if right - left == 10:
+                # 得到一个长度为10的子串
+                cnt = substr_counts.get(substr, 0) + 1
+                if cnt == 2:      
+                    res.append(s[left: right])  # 子串第二次出现，加入列表；同时如果出现了多次也不会重复添加
+                substr_counts[substr] = cnt     # 统计当前子串哈希值出现次数
+                substr &= CLEAR_FLAG       # 清除高两位，相当于滑动窗口去除最左端的字符
+                left += 1     # 子串起点右移
+            if right == n: break    # 右边界遍历子串结束，退出
+            substr <<= 2           # 当前哈希值二进制整体右移两位，用来加入新值
+            substr |=CHAR_HASH[s[right]]     # 获取当前右边界指向的字符的哈希值，并加入子串哈希值中
+        return res
+```
+
+* []
+
+```C++
+class Solution {
+private:
+    const int CLEAR_FLAG = (1 << 18) - 1;   // 清除子串哈希值高两位的标志位
+    
+    // 将字符A,C,G,T分别编码成0,1,2,3
+    int getCharHash(char ch){
+        if(ch == 'A')return 0;
+        if(ch == 'C')return 1;
+        if(ch == 'G')return 2;
+        return 3;
+    }
+
+public:
+    vector<string> findRepeatedDnaSequences(string s) {
+        vector<string> res;
+        unordered_map<int, int> substrCounts;      // 记录出现过的子串哈希值   
+        int n = s.size();
+        int substr = 0;     // 当前子串哈希值
+        int left = 0;       // 当前子串的起点
+        for(int right = 0; right <= n; right++){
+            if(right - left == 10){
+                // 得到一个长度为10的子串    
+                if(substrCounts[substr] == 1){      
+                    res.emplace_back(s.substr(left, 10));  // 子串第二次出现，加入列表；同时如果出现了多次也不会重复添加
+                }   
+                substrCounts[substr]++;     // 统计当前子串哈希值出现次数
+                substr &= CLEAR_FLAG;       // 清除高两位，相当于滑动窗口去除最左端的字符
+                left++;     // 子串起点右移
+            }
+            if(right == n)break;    // 右边界遍历子串结束，退出
+            substr <<= 2;           // 当前哈希值二进制整体右移两位，用来加入新值
+            substr |= getCharHash(s[right]);     // 获取当前右边界指向的字符的哈希值，并加入子串哈希值中
+        }
+        return res;
+    }
+};
+```
+

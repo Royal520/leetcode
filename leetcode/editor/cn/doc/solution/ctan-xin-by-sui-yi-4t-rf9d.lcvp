@@ -1,0 +1,57 @@
+> Problem: [765. 情侣牵手](https://leetcode.cn/problems/couples-holding-hands/description/)
+
+[TOC]
+
+# 思路
+
+> 找出需要交换的人的下标，然后暴力枚举每两个人交换，交换后，有三种可能，一是没有情侣可以牵手成功，二是只能满足一对情侣牵手，三是可以满足两对情侣牵手，只有满足二或者三才能够找到最少交换次数。
+
+# 解题方法
+
+> 暴力枚举需要交换的人进行交换。
+
+# Code
+
+* []
+
+```C++
+
+class Solution {
+public:
+    int minSwapsCouples(vector<int>& row) {
+        //找出需要交换的人的下标
+        int n=row.size(),ans=0;
+        vector<int> need_swap;
+        for(int i=1;i<n;i+=2){
+            if(row[i]/2!=row[i-1]/2){
+                need_swap.push_back(i-1);
+                need_swap.push_back(i);
+            }
+        }
+        auto swap=[&](int &x,int &y){
+            int temp=x;
+            x=y;
+            y=temp;
+        };
+        int m=need_swap.size();
+        //暴力枚举每两个人交换，算出交换次数
+        for(int i=0;i<m;i+=2){
+            for(int j=i+2;j<m;j++){
+                if(row[need_swap[i]]/2==row[need_swap[j]]/2){
+                    ans++;
+                    swap(row[need_swap[i+1]],row[need_swap[j]]);
+                    break;
+                }
+            }
+        }
+        return ans;
+    }
+};
+```
+
+# 复杂度
+
+- 时间复杂度:O(n^2)
+
+- 空间复杂度:O(n)
+

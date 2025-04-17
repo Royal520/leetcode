@@ -1,0 +1,43 @@
+> Problem: [106. 从中序与后序遍历序列构造二叉树](https://leetcode.cn/problems/construct-binary-tree-from-inorder-and-postorder-traversal/description/)
+
+# Code
+
+* []
+
+```C++
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    TreeNode* buildTree(vector<int>& inorder, vector<int>& postorder) {
+        reverse(inorder.begin(),inorder.end());// 右 根 左
+        reverse(postorder.begin(),postorder.end());//根 右 左
+
+        //105. 从前序与中序遍历序列构造二叉树 
+        unordered_map<int,int> mp;
+        for(int i=0;i < inorder.size();i++)
+            mp[inorder[i]] = i; 
+        //先序遍历确定根 中序遍历锁定当前根节点位置 左右即左右子树
+        function<TreeNode*(int,int,int)> dfs = [&](int r_id,int left,int right)->TreeNode*{
+            if(left > right) return nullptr;
+            TreeNode* node = new TreeNode(postorder[r_id]);
+            int k = mp[postorder[r_id]]; 
+            node->right = dfs(r_id+1,left,k-1);
+            node->left = dfs(r_id+k-left+1,k+1,right);
+            return node;
+        };
+
+        return dfs(0,0,inorder.size()-1);  //先序遍历 （根节点下标 左边界 右边界）
+    }
+};
+```
+

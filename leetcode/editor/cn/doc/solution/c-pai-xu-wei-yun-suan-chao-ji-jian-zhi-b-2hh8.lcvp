@@ -1,0 +1,53 @@
+> Problem: [318. 最大单词长度乘积](https://leetcode.cn/problems/maximum-product-of-word-lengths/description/)
+
+![image.png](https://pic.leetcode.cn/1699258491-ihOHzF-image.png)
+
+# 思路&解题方法
+
+> 一开始看到有排序的题解以为有人和我想的一样，乍一看排不排序没区别。实际上还是有区别的，按照字符串长度从大到小排序，找到满足题意的一对字符串后，在他俩后面的字符串就没有任何用处了。具体见代码，在代码里这体现为访问字符串的下标不需要超过$top$。$mask$数组统一预处理比较好。
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度： $O(nlog(n)+top^2)$
+> 不太好分析，这是估算的，最坏情况下$top$即为$n$
+
+- 空间复杂度:
+
+> 添加空间复杂度： $O(n)$
+
+# Code
+
+* []
+
+```C++
+
+class Solution {
+public:
+    int maxProduct(vector<string>& words) {
+        int n=(int)words.size(),res=0;
+        sort(words.begin(),words.end(),[](auto const &a,auto const &b){
+            return a.size()>b.size();
+        });
+        vector<int> mask(n);
+        for(int i=0;i<n;i++){
+            int cur=0;
+            for(char c:words[i])cur|=(1<<(c-'a'));
+            mask[i]=cur;
+        }
+        int top=n;
+        for(int i=0;i<top;i++){
+            for(int j=i+1;j<top;j++){
+                if((mask[i]&mask[j])==0){
+                    if(top==n)top=j;
+                    res=max(res,(int)(words[i].size()*words[j].size()));
+                    break;
+                }
+            }
+        }
+        return res;
+    }
+};
+```
+

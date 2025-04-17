@@ -1,0 +1,145 @@
+**方法一：哈希表**
+
+我们定义一个哈希表 $cnt$，用于存储所有长度为 $10$ 的子字符串出现的次数。
+
+遍历字符串 $s$ 的所有长度为 $10$ 的子字符串，对于当前子字符串 $t$，我们更新其在哈希表中对应的计数。如果 $t$ 的计数为 $2$，我们就将它加入答案。
+
+遍历结束后，返回答案数组即可。
+
+* [sol1-Python3]
+
+```python
+class Solution:
+    def findRepeatedDnaSequences(self, s: str) -> List[str]:
+        cnt = Counter()
+        ans = []
+        for i in range(len(s) - 10 + 1):
+            t = s[i : i + 10]
+            cnt[t] += 1
+            if cnt[t] == 2:
+                ans.append(t)
+        return ans
+```
+
+* [sol1-Java]
+
+```java
+class Solution {
+    public List<String> findRepeatedDnaSequences(String s) {
+        Map<String, Integer> cnt = new HashMap<>();
+        List<String> ans = new ArrayList<>();
+        for (int i = 0; i < s.length() - 10 + 1; ++i) {
+            String t = s.substring(i, i + 10);
+            if (cnt.merge(t, 1, Integer::sum) == 2) {
+                ans.add(t);
+            }
+        }
+        return ans;
+    }
+}
+```
+
+* [sol1-C++]
+
+```cpp
+class Solution {
+public:
+    vector<string> findRepeatedDnaSequences(string s) {
+        unordered_map<string, int> cnt;
+        vector<string> ans;
+        for (int i = 0, n = s.size() - 10 + 1; i < n; ++i) {
+            auto t = s.substr(i, 10);
+            if (++cnt[t] == 2) {
+                ans.emplace_back(t);
+            }
+        }
+        return ans;
+    }
+};
+```
+
+* [sol1-Go]
+
+```go
+func findRepeatedDnaSequences(s string) (ans []string) {
+	cnt := map[string]int{}
+	for i := 0; i < len(s)-10+1; i++ {
+		t := s[i : i+10]
+		cnt[t]++
+		if cnt[t] == 2 {
+			ans = append(ans, t)
+		}
+	}
+	return
+}
+```
+
+* [sol1-Rust]
+
+```rust
+use std::collections::HashMap;
+
+impl Solution {
+    pub fn find_repeated_dna_sequences(s: String) -> Vec<String> {
+        if s.len() < 10 {
+            return vec![]
+        }
+        let mut cnt = HashMap::new();
+        let mut ans = Vec::new();
+        for i in 0..s.len() - 9 {
+            let t = &s[i..i + 10];
+            let count = cnt.entry(t).or_insert(0);
+            *count += 1;
+            if *count == 2 {
+                ans.push(t.to_string());
+            }
+        }
+        ans
+    }
+}
+```
+
+* [sol1-TypeScript]
+
+```ts
+function findRepeatedDnaSequences(s: string): string[] {
+    const n = s.length;
+    const cnt: Map<string, number> = new Map();
+    const ans: string[] = [];
+    for (let i = 0; i <= n - 10; ++i) {
+        const t = s.slice(i, i + 10);
+        cnt.set(t, (cnt.get(t) ?? 0) + 1);
+        if (cnt.get(t) === 2) {
+            ans.push(t);
+        }
+    }
+    return ans;
+}
+```
+
+* [sol1-C#]
+
+```cs
+public class Solution {
+    public IList<string> FindRepeatedDnaSequences(string s) {
+        var cnt = new Dictionary<string, int>();
+        var ans = new List<string>();
+        for (int i = 0; i < s.Length - 10 + 1; ++i) {
+            var t = s.Substring(i, 10);
+            if (!cnt.ContainsKey(t)) {
+                cnt[t] = 0;
+            }
+            if (++cnt[t] == 2) {
+                ans.Add(t);
+            }
+        }
+        return ans;
+    }
+}
+```
+
+时间复杂度 $O(n \times 10)$，空间复杂度 $O(n \times 10)$。其中 $n$ 是字符串 $s$ 的长度。
+
+---
+
+有任何问题，欢迎评论区交流，欢迎评论区提供其它解题思路（代码），也可以点个赞支持一下作者哈😄~

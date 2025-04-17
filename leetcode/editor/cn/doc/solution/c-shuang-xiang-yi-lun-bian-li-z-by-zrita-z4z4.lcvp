@@ -1,0 +1,25 @@
+### 解题思路
+
+有效的字符串，即从左向右看是有效的，从右向左看也是有效的
+如果在遍历过程中，left或者right小于0，则是无效
+
+### 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    bool checkValidString(string s) {
+        int left = 0, right = 0, size = s.size();
+        for(int i = 0; i < size; ++i)
+        {
+            left  += (s[i] == ')') ? -1 : +1;            //从左向右看左括号能否有效
+            right += (s[size-1-i] == '(') ? -1 : +1;     //从右向左看右括号能否有效
+            if(left < 0 || right < 0)   return false;
+        } 
+        return true;
+    }
+};
+```
+

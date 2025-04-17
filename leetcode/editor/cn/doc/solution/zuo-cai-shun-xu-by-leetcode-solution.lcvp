@@ -1,0 +1,416 @@
+#### 方法一：动态规划
+
+**思路与算法**
+
+假设我们只能选一道菜，那么我们应该如何选择呢？显然，选择满意程度最大的那一道菜 $s_0$ 是最优的，并且需要验证是否满足 $s_0 > 0$。假设现在有两道菜 $s_0, s_1$，则此时应该是先选 $s_0$ 还是先选 $s_1$ 呢？显然，应先选择小的那道菜，再选择大的那道菜。
+
+> 假设 $s_0 < s_1$，此时如果先选择满意小的菜，再选择满意度大的菜则此时的喜爱时间为 $s_0 + 2s_1$；此时如果先选择满意大的菜，再选择满意小的菜则此时的喜爱时间为 $s_1 + 2s_0$，由于 $s_0 < s_1$，显然 $s_0 + 2s_1 > s_1 + 2s_0$。
+
+当然上述问题还需要具体分析，因为涉及到 $s_0, s_1$ 可能小于 $0$ 情形，但无论取值 $s_0, s_1$ 如何，我们都应该尽量先选择满意度小的，后选择满意度大的。根据上述贪心原则，显然满意度越大的菜越应该尽量越往后选，应对 $n$ 道菜按照满意度的大小进行排序，满意度越大的菜应该越往后排。
+
+如果第 $i$ 次选了第 $j$ 道菜，则此时第 $j$ 道菜的喜爱时间为 $i \times \textit{satisfaction}[j]$，对于每道菜来说，可以选或者可以不选，此时则可以转换为「[$\text{0-1}$ 背包](https://oi-wiki.org/dp/knapsack/)」问题，等价于求在 $n$ 个背包中选择 $m$ 个时可以获得的最大喜爱时间，其中 $m \in [0,n]$。
+设 $\textit{dp}[i][j]$ 表示前 $i$ 道菜中选择 $j$ 道菜时可以得到的最大喜爱时间，且满足 $i \ge j$，则此时对于第 $i$ 道菜来说有以下两种选择：
++ 第 $j$ 次选择第 $i$ 道菜，则此时需要在前 $i-1$ 道菜中选择 $j-1$ 道菜，则此时 $\textit{dp}[i][j] = \max(\textit{dp}[i][j], \textit{dp}[i-1][j-1] + i \times \textit{satisfaction}[j])$；
++ 第 $j$ 次不选择第 $i$ 道菜，则此时需要在前 $i-1$ 道菜中选择 $j$ 道菜，此时需要满足 $i -1 \ge j$，则此时 $\textit{dp}[i][j] = \max(\textit{dp}[i][j], \textit{dp}[i-1][j])$；
+
+综上可以得到递推公式：
+$$
+\textit{dp}[i][j] = \max(\textit{dp}[i-1][j], \textit{dp}[i-1][j-1] + i \times \textit{satisfaction}[j])
+$$
+我们按照上述递推公式计算出 $n$ 道菜中选择 $x$ 道菜的最大喜爱时间，$x$ 的取值为 $x \in [0, n]$，则此时可以得到的最大喜爱时间为 $\max (\textit{dp}[n][x])$。
+
+为什么需要对数组进行**排序**，才可以使用动态规划？
+
+> 假设现在有 $i$ 道菜，此时 $i$ 道菜中满意度最大的为第 $j$ 道菜，它的满意度 $\textit{satisfaction}[j]$，假设它在数组中的排序为 $i^{'}$，则此时 $i^{'} < i$，则此时它的时间系数取值范围为 $[0,i^{'}]$，无法取到 $i$，即此时它的喜爱时间一定无法取到 $i \times \textit{satisfaction}[j]$，则此时一定无法满足最优解。
+
+**代码**
+
+* [sol1-C++]
+
+```C++
+class Solution {
+public:
+    int maxSatisfaction(vector<int>& satisfaction) {
+        int n = satisfaction.size();
+        vector<vector<int>> dp(n + 1, vector<int>(n + 1));
+        sort(satisfaction.begin(), satisfaction.end());
+        int res = 0;
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= i; j++) {
+                dp[i][j] = dp[i - 1][j - 1] + satisfaction[i - 1] * j;
+                if (j < i) {
+                    dp[i][j] = max(dp[i - 1][j], dp[i][j]);
+                }
+                res = max(res, dp[i][j]);
+            }
+        }
+        return res;
+    }
+};
+```
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public int maxSatisfaction(int[] satisfaction) {
+        int n = satisfaction.length;
+        int[][] dp = new int[n + 1][n + 1];
+        Arrays.sort(satisfaction);
+        int res = 0;
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= i; j++) {
+                dp[i][j] = dp[i - 1][j - 1] + satisfaction[i - 1] * j;
+                if (j < i) {
+                    dp[i][j] = Math.max(dp[i - 1][j], dp[i][j]);
+                }
+                res = Math.max(res, dp[i][j]);
+            }
+        }
+        return res;
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public int MaxSatisfaction(int[] satisfaction) {
+        int n = satisfaction.Length;
+        int[][] dp = new int[n + 1][];
+        for (int i = 0; i <= n; i++) {
+            dp[i] = new int[n + 1];
+        }
+        Array.Sort(satisfaction);
+        int res = 0;
+        for (int i = 1; i <= n; i++) {
+            for (int j = 1; j <= i; j++) {
+                dp[i][j] = dp[i - 1][j - 1] + satisfaction[i - 1] * j;
+                if (j < i) {
+                    dp[i][j] = Math.Max(dp[i - 1][j], dp[i][j]);
+                }
+                res = Math.Max(res, dp[i][j]);
+            }
+        }
+        return res;
+    }
+}
+```
+
+* [sol1-C]
+
+```C
+int cmp(const void *a, const void *b) {
+    return *(int *)a - *(int *)b;
+}
+
+int maxSatisfaction(int* satisfaction, int satisfactionSize) {
+    int n = satisfactionSize;
+    int dp[n + 1][n + 1];
+    memset(dp, 0, sizeof(dp));
+    qsort(satisfaction, satisfactionSize, sizeof(int), cmp);
+
+    int res = 0;
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= i; j++) {
+            dp[i][j] = dp[i - 1][j - 1] + satisfaction[i - 1] * j;
+            if (j < i) {
+                dp[i][j] = fmax(dp[i - 1][j], dp[i][j]);
+            }
+            res = fmax(res, dp[i][j]);
+        }
+    }
+    return res;
+}
+```
+
+* [sol1-Python]
+
+```Python
+class Solution:
+    def maxSatisfaction(self, satisfaction: List[int]) -> int:
+        n = len(satisfaction)
+        dp = [[0 for _ in range(n + 1)] for _ in range(n + 1)]
+        satisfaction.sort()
+        res = 0
+        for i in range(1, n + 1):
+            for j in range(1, i + 1):
+                dp[i][j] = dp[i - 1][j - 1] + satisfaction[i - 1] * j
+                if j < i:
+                    dp[i][j] = max(dp[i][j], dp[i - 1][j])
+                res = max(res, dp[i][j])
+        return res
+```
+
+* [sol1-Go]
+
+```Go
+func maxSatisfaction(satisfaction []int) int {
+    n := len(satisfaction)
+    dp := make([][]int, n + 1)
+    for i := 0; i <= n; i++ {
+        dp[i] = make([]int, n + 1)
+    }
+    sort.Ints(satisfaction)
+    res := 0
+    for i := 1; i <= n; i++ {
+        for j := 1; j <= i; j++ {
+            dp[i][j] = dp[i - 1][j - 1] + satisfaction[i - 1] * j
+            if j < i {
+                dp[i][j] = max(dp[i][j], dp[i - 1][j])
+            }
+            res = max(res, dp[i][j])
+        }
+    }
+    return res
+}
+
+func max(x, y int) int {
+    if x < y {
+        return y
+    }
+    return x
+}
+```
+
+* [sol1-JavaScript]
+
+```JavaScript
+var maxSatisfaction = function(satisfaction) {
+    const n = satisfaction.length;
+    const dp = new Array(n + 1).fill(0).map(() => new Array(n + 1).fill(0));
+    satisfaction.sort((a, b) => a - b);
+    let res = 0;
+    for (let i = 1; i <= n; i++) {
+        for (let j = 1; j <= i; j++) {
+            dp[i][j] = dp[i - 1][j - 1] + satisfaction[i - 1] * j;
+            if (j < i) {
+                dp[i][j] = Math.max(dp[i][j], dp[i - 1][j]);
+            }
+            res = Math.max(res, dp[i][j])
+        }
+    }
+    return res;
+}; 
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n^2)$，其中 $n$ 表示数组 $\textit{satisfaction}$ 的长度。排序需要的时间为 $O(n \log n)$，求解动态规划需要的时间为 $O(n^2)$，因此总的时间复杂度为 $O(n^2)$。
+
+- 空间复杂度：$O(n^2)$，其中 $n$ 表示数组 $\textit{satisfaction}$ 的长度。我们需要所有动态规划的子状态，一共有 $n^2$ 中子状态，需要的空间为 $O(n^2)$。
+
+#### 方法二：贪心算法
+
+**思路与算法**
+
+假设我们只能选一道菜，那么我们应该如何选择呢？显然，选择满意程度最大的那一道菜 $s_0$ 是最优的，并且我们需要验证是否有 $s_0 > 0$，因为如果 $s_0 \leq 0$，我们选择这道菜不会有任何受益。
+
+现在我们可以再多选一道菜，也就是两道菜，那么我们应该如何选择呢？假设我们选择了 $s_1$ 这道菜，那么满意程度的总和为：
+
+$$
+s_1 + 2s_0
+$$
+
+由于 $s_0$ 是满意程度最大的那道菜，我们要最大化上述表达式的值，就应该找到尽可能大的 $s_1$。因此在最优的情况下，我们选择满意程度次大的那一道菜作为 $s_1$，并且需要保证选择之后的收益多于选择之前的收益，即：
+
+$$
+s_1 + 2s_0 > s_0
+$$
+
+也就是只要满足：
+
+$$
+s_1 + s_0 > 0
+$$
+
+我们就可以选择 $s_1$。对于第三道菜也是如此，我们如果要选择 $s_2$，就应该选择满意程度第三大的那一道菜作为 $s_2$，同时要保证收益的增加，即：
+
+$$
+s_2 + 2s_1 + 3s_0 > s1 + 2s_0
+$$
+
+也就是当满足
+
+$$
+s_2 + s_1 + s_0 > 0
+$$
+
+时，我们就可以选择 $s_2$。因此，我们就有了一个贪心的大致思路：
+
+- 我们将所有菜的满意程度从大到小排序；
+
+- 我们按照排好序的顺序依次遍历这些菜，对于当前遍历到的菜 $s_i$，如果它与之前选择的所有菜的满意程度之和大于 $0$，我们就选择这道菜，否则可以直接退出遍历的循环。这是因为如果 $s_i$ 与之前选择的所有菜的满意程度之和已经小于等于 $0$ 了，那么后面的菜比 $s_i$ 的满意程度还要小，就更不可能得到一个大于 $0$ 的和了。
+
+**正确性证明**
+
+在上面的分析中，我们只给出了一个贪心算法的思路，而并没有对其正确性进行证明。如果对证明感兴趣的读者可以阅读本节，如果不感兴趣，可以直接跳到后面的代码部分。
+
+我们需要证明：在最优的选取方法中，如果我们选择了 $k$ 道菜，那么一定是满意程度最大的 $k$ 道菜，并且满意程度越大的菜，做菜顺序越靠后。
+
+具体地，我们可以使用反证法。假设我们选择了 $a_1, a_2, \cdots, a_k$ 这 $k$ 道菜，它们并不是满意程度最大的 $k$ 道菜，因此我们可以进行如下两个步骤：
+
+- 首先我们不改变选择的这些菜，而只改变它们的做菜顺序。根据符号「[排序不等式](https://baike.baidu.com/item/%E6%8E%92%E5%BA%8F%E4%B8%8D%E7%AD%89%E5%BC%8F)」，当将这些菜按照满意程度升序排序后，这样的做菜顺序可以得到最大的总喜爱时间。也就是说，我们写出总喜爱时间的表达式：
+
+  $$
+  a_1 + 2a_2 + 3a_3 + \cdots + ka_k
+  $$
+
+  当 $a_1, a_2, \cdots, a_k$ 单调递增时，这个表达式的值可以取到最大值；
+
+- 随后我们将 $a_1, a_2, \cdots, a_k$ 替换成满意程度最大的 $k$ 道菜，设为 $b_1, b_2, \cdots, b_k$，它们也是按照升序排序的。由于 $a_1, a_2, \cdots, a_k$ 已经按照升序排序，那么 $b_i \geq a_i$ 恒成立，因此我们将原本的 $k$ 道菜替换成满意程度最大的 $k$ 道菜，总喜爱时间不会减少。
+
+这样以来，我们将原先的 $a_1, a_2, \cdots, a_k$ 替换成了 $b_1, b_2,\cdots, b_k$，并且总喜爱时间不会减少，因此我们就证明了上述的结论，即：如果我们知道需要选择 $k$ 道菜，那么选择满意程度最大的 $k$ 道菜，并且按照它们的满意程度升序排序，以此顺序进行制作，可以得到最大的总喜爱时间。也就是说，如果我们将所有的菜按照满意程度降序排序，在最优的情况下，我们选择的菜是从满意度最高的菜开始的连续若干道菜。因此，我们可以将所有的菜按照满意程度从大到小排序，随后依次遍历每一道菜。如果加入这道菜导致总喜爱时间增加，我们就可以选取这道菜，否则我们直接退出循环。因为我们需要连续地选取若干道菜，而当前这道菜会产生副收益，因此后面的菜都不需要考虑了，这与我们提出的贪心算法也是一致的。
+
+**代码**
+
+* [sol2-C++]
+
+```C++
+class Solution {
+public:
+    int maxSatisfaction(vector<int>& satisfaction) {
+        sort(satisfaction.begin(), satisfaction.end(), greater<int>());
+        int presum = 0, ans = 0;
+        for (int si: satisfaction) {
+            if (presum + si > 0) {
+                presum += si;
+                ans += presum;
+            } else {
+                break;
+            }
+        }
+        return ans;
+    }
+};
+```
+
+* [sol2-Java]
+
+```Java
+class Solution {
+    public int maxSatisfaction(int[] satisfaction) {
+        Arrays.sort(satisfaction);
+        for (int i = 0, j = satisfaction.length - 1; i < j; i++, j--) {
+            int temp = satisfaction[i];
+            satisfaction[i] = satisfaction[j];
+            satisfaction[j] = temp;
+        }
+        int presum = 0, ans = 0;
+        for (int si : satisfaction) {
+            if (presum + si > 0) {
+                presum += si;
+                ans += presum;
+            } else {
+                break;
+            }
+        }
+        return ans;
+    }
+}
+```
+
+* [sol2-C#]
+
+```C#
+public class Solution {
+    public int MaxSatisfaction(int[] satisfaction) {
+        Array.Sort(satisfaction, (a, b) => b - a);
+        int presum = 0, ans = 0;
+        foreach (int si in satisfaction) {
+            if (presum + si > 0) {
+                presum += si;
+                ans += presum;
+            } else {
+                break;
+            }
+        }
+        return ans;
+    }
+}
+```
+
+* [sol2-C]
+
+```C
+int cmp(const void *a, const void *b) {
+    return *(int *)b - *(int *)a;
+}
+
+int maxSatisfaction(int* satisfaction, int satisfactionSize) {
+    qsort(satisfaction, satisfactionSize, sizeof(int), cmp);
+    int presum = 0, ans = 0;
+    for (int i = 0; i < satisfactionSize; i++) {
+        int si = satisfaction[i];
+        if (presum + si > 0) {
+            presum += si;
+            ans += presum;
+        } else {
+            break;
+        }
+    }
+    return ans;
+}
+```
+
+* [sol2-Python3]
+
+```Python
+class Solution:
+    def maxSatisfaction(self, satisfaction: List[int]) -> int:
+        satisfaction.sort(key = lambda x : -x)
+        presum, ans = 0, 0
+        for si in satisfaction:
+            if presum + si > 0:
+                presum += si
+                ans += presum
+            else:
+                break
+        return ans
+```
+
+* [sol2-Go]
+
+```Go
+func maxSatisfaction(satisfaction []int) int {
+    sort.Slice(satisfaction, func(i, j int) bool {
+        return satisfaction[i] > satisfaction[j]
+    })
+    presum, ans := 0, 0
+    for _, si := range satisfaction {
+        if presum + si > 0 {
+            presum += si
+            ans += presum
+        } else {
+            break
+        }
+    }
+    return ans
+}
+```
+
+* [sol2-JavaScript]
+
+```JavaScript
+var maxSatisfaction = function(satisfaction) {
+    satisfaction.sort((a, b) => b - a);
+    let presum = 0, ans = 0;
+    for (si of satisfaction) {
+        if (presum + si > 0) {
+            presum += si;
+            ans += presum;
+        } else {
+            break;
+        }
+    }
+    return ans;
+}; 
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n \log n)$，其中 $n$ 表示数组 $\textit{satisfaction}$ 的长度。需要对数组 $\textit{satisfaction}$ 进行排序，需要的时间为 $O(n \log n)$。
+
+- 空间复杂度：$O(\log n)$，其中 $n$ 表示数组 $\textit{satisfaction}$ 的长度。排序需要的空间为 $O(\log n)$。
+

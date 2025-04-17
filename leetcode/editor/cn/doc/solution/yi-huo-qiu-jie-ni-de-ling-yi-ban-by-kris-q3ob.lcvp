@@ -1,0 +1,37 @@
+> Problem: [765. 情侣牵手](https://leetcode.cn/problems/couples-holding-hands/description/)
+
+[TOC]
+
+* []
+
+```C++
+
+class Solution {
+public:
+    //参考大佬的异或，2与1异或得到3，3与1异或得到2；也就是说每一对只要异或就能得到彼此的“另一半”，只要找到并交换就行
+    int minSwapsCouples(vector<int>& row) {
+        int n = row.size();
+        int cnt = 0;
+    
+        for(int i = 0; i < n - 1; i++){
+            int x = row[i];   //某个人
+            int y = x ^ 1;  //他的另一半
+
+            if(row[i + 1] != y){  //情侣不挨着,就往后搜
+                for(int k = i + 2; k < n; k++){
+                    if(row[k] == y){
+                        //找到了另一半,交换
+                        int temp = row[i + 1];
+                        row[i + 1] = row[k];
+                        row[k] = temp;
+                        cnt++;
+                        break;   //找到就退回上一层循环，判断下一对是不是情侣坐一起
+                    }
+                }
+            }
+        }
+        return cnt;
+    }
+};
+```
+

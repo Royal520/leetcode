@@ -1,0 +1,142 @@
+> Problem: [1094. 拼车](https://leetcode.cn/problems/car-pooling/description/)
+
+# 一：暴力
+
+# 思路
+
+> 统计每个位置上车上的人数有多少，大于capacity就不能接送所有乘客
+
+# 解题方法
+
+> 暴力
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    bool carPooling(vector<vector<int>>& trips, int capacity) {
+        int n=trips.size();
+        // 暴力
+        vector<int> cnt(1001);
+        for(auto t:trips){
+            int x=t[0],y=t[1],z=t[2];
+            for(int i=y;i<z;i++){
+                cnt[i]+=x;
+                if(cnt[i]>capacity){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+};
+```
+
+# 复杂度分析
+
+> 时间复杂度：O(nU),最差情况下，每次都遍历整个数组,U=max(toi)
+> 空间复杂度：O(U)
+
+# 二：差分优化
+
+# 思路
+
+> 统计每个位置上车上的人数有多少，大于capacity就不能接送所有乘客
+
+# 解题方法
+
+> 用差分数组来优化
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    bool carPooling(vector<vector<int>>& trips, int capacity) {
+        int n=trips.size();
+        vector<int> cnt(1002);
+        for(auto t:trips){
+            int x=t[0],y=t[1],z=t[2];
+            cnt[y]+=x;
+            cnt[z]-=x;
+        }
+        int pre_sum=0;
+        for(int i=0;i<1002;i++){
+            pre_sum+=cnt[i];
+            if(pre_sum>capacity){
+                return false;
+            }
+        }
+        return true;
+    }
+};
+```
+
+# 复杂度分析
+
+> 时间复杂度：O(n+U),U=max(toi)
+> 空间复杂度：O(U)
+
+# 三：树状数组优化
+
+# 思路
+
+> 统计每个位置上车上的人数有多少，大于capacity就不能接送所有乘客
+
+# 解题方法
+
+> 用树状数组来优化
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    bool carPooling(vector<vector<int>>& trips, int capacity) {
+        int n=trips.size();
+        vector<int> cnt(1002);
+        auto lowbit=[&](int x){
+            return x&-x;
+        };
+        auto add=[&](int index,int val){
+            for(int i=index;i<1002;i+=lowbit(i)){
+                cnt[i]+=val;
+            }
+        };
+        auto range_add=[&](int l,int r,int val){
+            add(l,val);
+            add(r,-val);
+        };
+        auto query=[&](int index){
+            int ans=0;
+            for(int i=index;i;i-=lowbit(i)){
+                ans+=cnt[i];
+            }
+            return ans;
+        };
+        for(auto t:trips){
+            int x=t[0],y=t[1],z=t[2];
+            range_add(y+1,z+1,x);
+        }
+        for(int i=0;i<1001;i++){
+            if(query(i+1)>capacity){
+                return false;
+            }
+        }
+        return true;
+    }
+};
+```
+
+# 复杂度分析
+
+> 时间复杂度：O((n+U)logU),U=max(toi)
+> 空间复杂度：O(U)
+

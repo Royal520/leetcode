@@ -1,0 +1,191 @@
+## 内向基环树 + 拓扑排序
+
+根据题意，圆形桌上 $x$ 左右两边只要有一位是 $x$ 所喜欢即可。
+
+我们可从 $i$ 向 $favorite[i]$ 添加有向边，从而得到一张包含多个「内向基环树」的图。
+
+内向基环树，是指其满足基环树定义，且内向 ~~bushi~~。
+
+基环树是指其具有 $n$ 个点 $n$ 条边的联通块，而「内向」是指树中任意节点有且只有一条出边，对应的「外向」是指树中任意节点有且只有一条入边。
+
+例如，左图内向，右图外向：
+
+![image.png](https://pic.leetcode.cn/1698836024-quiWTH-image.png)
+
+根据题意，**圆桌最多放置一个长度大于 $2$ 的环（内向环，只有一条出边，即只有一个喜欢的人，安插其他非环成员，会破坏留下参加会议的必要条件），但可放置多个长度为 $2$ 的环，且多个环可延伸出最长链（利用左右两侧只需有一个喜欢的人即满足）。**
+
+在「取长度大于 $2$ 的最大环」及「多个长度为 $2$ 的环及其最长链之和」两者中取最大长度即是答案。
+
+![image.png](https://pic.leetcode.cn/1698818966-dYOVXK-image.png)
+
+![image.png](https://pic.leetcode.cn/1698820324-XUtXgz-image.png)
+
+代码：
+
+* []
+
+```Java
+class Solution {
+    public int maximumInvitations(int[] favorite) {
+        int n = favorite.length;
+        // in 统计每个节点的入度情况, max 统计每节点的最长链
+        int[] in = new int[n], max = new int[n];
+        for (int x : favorite) in[x]++;
+        Deque<Integer> d = new ArrayDeque<>();
+        for (int i = 0; i < n; i++) {
+            if (in[i] == 0) d.addLast(i);
+        }
+        // 拓扑排序
+        while (!d.isEmpty()) {
+            int cur = d.pollFirst(), ne = favorite[cur];
+            max[ne] = Math.max(max[ne], max[cur] + 1);
+            if (--in[ne] == 0) d.addLast(ne);
+        }
+        // 圆桌最多放置一个大于 2 的环（ans1 统计最大值）
+        // 圆桌可放置多个等于 2 的环（ans2 累加该长度）
+        int ans1 = 0, ans2 = 0;
+        for (int i = 0; i < n; i++) {
+            if (in[i] == 0) continue;
+            int j = favorite[i], cur = 1;
+            while (j != i) {
+                in[j] = 0;  
+                j = favorite[j];
+                cur++;
+            }
+            if (cur == 2) ans2 += 2 + max[i] + max[favorite[i]];
+            else ans1 = Math.max(ans1, cur);
+        }
+        return Math.max(ans1, ans2);
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def maximumInvitations(self, favorite: List[int]) -> int:
+        n = len(favorite)
+        # in_degree 统计每个节点的入度情况, max_length 统计每节点的最长链
+        in_degree, max_length = [0] * n, [0] * n
+        for x in favorite:
+            in_degree[x] += 1
+        d = deque()
+        for i in range(n):
+            if in_degree[i] == 0:
+                d.append(i)
+       # 拓扑排序
+        while d:
+            cur = d.popleft()
+            ne = favorite[cur]
+            max_length[ne] = max(max_length[ne], max_length[cur] + 1)
+            in_degree[ne] -= 1
+            if in_degree[ne] == 0:
+                d.append(ne)
+        # 圆桌最多放置一个大于 2 的环（ans1 统计最大值）
+        # 圆桌可放置多个等于 2 的环（ans2 累加该长度）
+        ans1, ans2 = 0, 0
+        for i in range(n):
+            if in_degree[i] == 0:
+                continue
+            j, cur = favorite[i], 1
+            while j != i:
+                in_degree[j] = 0
+                j = favorite[j]
+                cur += 1
+            if cur == 2:
+                ans2 += 2 + max_length[i] + max_length[favorite[i]]
+            else:
+                ans1 = max(ans1, cur)
+        return max(ans1, ans2)
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    int maximumInvitations(vector<int>& favorite) {
+        int n = favorite.size();
+        // in 统计每个节点的入度情况, max_length 统计每节点的最长链
+        vector<int> in(n, 0);
+        vector<int> max_length(n, 0);
+        for (int x : favorite) in[x]++;
+        deque<int> d;
+        for (int i = 0; i < n; i++) {
+            if (in[i] == 0) d.push_back(i);
+        }
+        // 拓扑排序
+        while (!d.empty()) {
+            int cur = d.front();
+            d.pop_front();
+            int ne = favorite[cur];
+            max_length[ne] = max(max_length[ne], max_length[cur] + 1);
+            if (--in[ne] == 0) d.push_back(ne);
+        }
+        // 圆桌最多放置一个大于 2 的环（ans1 统计最大值）
+        // 圆桌可放置多个等于 2 的环（ans2 累加该长度）
+        int ans1 = 0, ans2 = 0;
+        for (int i = 0; i < n; i++) {
+            if (in[i] == 0) continue;
+            int j = favorite[i], cur = 1;
+            while (j != i) {
+                in[j] = 0;
+                j = favorite[j];
+                cur++;
+            }
+            if (cur == 2) ans2 += 2 + max_length[i] + max_length[favorite[i]];    
+            else ans1 = max(ans1, cur);
+        }
+        return max(ans1, ans2);
+    }
+};
+```
+
+* []
+
+```TypeScript
+function maximumInvitations(favorite: number[]): number {
+    const n = favorite.length;
+    // in_degree 统计每个节点的入度情况, max_length 统计每节点的最长链
+    const in_degree = Array(n).fill(0), max_length = Array(n).fill(0);
+    for (const x of favorite) in_degree[x]++;
+    const d = [];
+    for (let i = 0; i < n; i++) {
+        if (in_degree[i] === 0) d.push(i);
+    }
+    // 拓扑排序
+    while (d.length > 0) {
+        const cur = d.shift() as number;
+        const ne = favorite[cur];
+        max_length[ne] = Math.max(max_length[ne], max_length[cur] + 1);
+        if (--in_degree[ne] === 0) d.push(ne);
+    }
+    // 圆桌最多放置一个大于 2 的环（ans1 统计最大值）
+    // 圆桌可放置多个等于 2 的环（ans2 累加该长度）
+    let ans1 = 0, ans2 = 0;
+    for (let i = 0; i < n; i++) {
+        if (in_degree[i] === 0) continue;
+        let j = favorite[i], cur = 1;
+        while (j !== i) {
+            in_degree[j] = 0;
+            j = favorite[j];
+            cur++;
+        }
+        if (cur == 2) ans2 += 2 + max_length[i] + max_length[favorite[i]];    
+        else ans1 = Math.max(ans1, cur);
+    }
+    return Math.max(ans1, ans2);
+};
+```
+
+* 时间复杂度：$O(n)$
+* 空间复杂度：$O(n)$
+
+---
+
+## 最后
+
+**如果有帮助到你，请给题解点个赞和收藏，让更多的人看到 ~ ("▔□▔)/**
+
+所有题解已经加入 [刷题指南](https://github.com/SharingSource/LogicStack-LeetCode/wiki)，欢迎 star 哦 ~

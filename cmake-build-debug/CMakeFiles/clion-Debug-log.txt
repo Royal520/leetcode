@@ -1,1 +1,4 @@
-在 /home/gl/CLionProjects/LeetCode 中找不到 CMakeLists.txt 选择 CMakeLists.txt
+/home/gl/.local/share/JetBrains/Toolbox/apps/clion/bin/cmake/linux/x64/bin/cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_MAKE_PROGRAM=/home/gl/.local/share/JetBrains/Toolbox/apps/clion/bin/ninja/linux/x64/ninja -G Ninja -S /home/gl/C++/leetcodes -B /home/gl/C++/leetcodes/cmake-build-debug
+-- Configuring done (0.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/gl/C++/leetcodes/cmake-build-debug

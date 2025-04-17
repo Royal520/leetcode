@@ -1,0 +1,56 @@
+> Problem: [429. N 叉树的层序遍历](https://leetcode.cn/problems/n-ary-tree-level-order-traversal/description/)
+
+# Code
+
+* []
+
+```C++
+/*
+// Definition for a Node.
+class Node {
+public:
+    int val;
+    vector<Node*> children;
+
+    Node() {}
+
+    Node(int _val) {
+        val = _val;
+    }
+
+    Node(int _val, vector<Node*> _children) {
+        val = _val;
+        children = _children;
+    }
+};
+*/
+
+class Solution {
+public:
+    vector<vector<int>> res;
+
+    void bfs(Node* root){
+        queue<Node*> q;
+        q.push(root);
+
+        while(q.size()) {
+            queue<Node*> tt;
+            vector<int> t;
+            while(q.size()){
+                auto tmp = q.front();q.pop();
+                t.push_back(tmp->val);
+                for(auto c : tmp->children) tt.push(c);
+            }
+            res.push_back(t);
+            q = move(tt);
+        }
+    }
+
+    vector<vector<int>> levelOrder(Node* root) {
+        if(root ==  nullptr) return res;
+        bfs(root);
+        return res;
+    }
+};
+```
+

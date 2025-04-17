@@ -1,0 +1,33 @@
+> Problem: [2678. 老人的数目](https://leetcode.cn/problems/number-of-senior-citizens/description/)
+
+[TOC]
+
+# 思路
+
+> 直接取字符串对应位比较
+
+# 复杂度
+
+- 时间复杂度: $O(1)$
+
+- 空间复杂度: $O(1)$
+
+# Code
+
+* []
+
+```C++
+
+class Solution {
+public:
+    int countSeniors(vector<string>& details) {
+        int count = 0;
+        for(auto str:details) {
+            int v = (str[11]-'0')*10 + (str[12]-'0');
+            if(v > 60) count++;
+        }
+        return count;
+    }
+};
+```
+

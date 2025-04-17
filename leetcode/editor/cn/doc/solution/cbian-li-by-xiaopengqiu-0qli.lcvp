@@ -1,0 +1,44 @@
+> Problem: [2586. 统计范围内的元音字符串数](https://leetcode.cn/problems/count-the-number-of-vowel-strings-in-range/description/)
+
+[TOC]
+
+# 思路
+
+> 一次遍历，对字符串逐个判断即可。
+
+# 解题方法
+
+> 遍历left到right中的元素，判断第一个字符和最后一个字符是否为元音。
+> 为了方便判断，将元音存储在 unordered_set 中，利用自带的count函数进行判断。
+
+# 复杂度
+
+- 时间复杂度:
+
+> 一次遍历即可，$O(n)$
+
+- 空间复杂度:
+
+> 只需要存储五个元音，$O(1)$
+
+# Code
+
+* []
+
+```C++
+
+class Solution {
+public:
+    int vowelStrings(vector<string>& words, int left, int right) {
+        int ans = 0;
+        unordered_set<char> cnt = {'a', 'e', 'i', 'o', 'u'};
+        for (int i = left; i <= right; ++i) {
+            string str = words[i];
+            if (cnt.count(str[0]) && cnt.count(str[str.size() - 1]))
+                ans++;
+        }
+        return ans;
+    }
+};
+```
+
