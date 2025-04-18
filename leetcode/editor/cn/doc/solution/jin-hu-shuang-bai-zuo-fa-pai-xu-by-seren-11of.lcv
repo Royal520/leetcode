@@ -1,0 +1,36 @@
+> Problem: [2364. 统计坏数对的数目](https://leetcode.cn/problems/count-number-of-bad-pairs/description/)
+
+[TOC]
+
+# 思路
+
+显然就是各自减去下标之后两值不同的数对的数目
+
+# 解题过程
+
+用排序解决。虽然哈希复杂度低，但是常数较大，实际效率远远不如排序。
+
+# 复杂度
+
+- 时间复杂度: $O(n\log n)$
+- 空间复杂度: $O(\log n)$
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    long long countBadPairs(vector<int>& nums) {
+        int n = nums.size();
+        long long res = 0;
+        unordered_map<int, int> cnt;
+        for (int i = 0; i < n; i++) {
+            res += i - cnt[nums[i] - i]++;
+        }
+        return res;
+    }
+};
+```
+

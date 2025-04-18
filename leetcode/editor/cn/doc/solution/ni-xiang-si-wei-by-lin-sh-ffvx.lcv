@@ -1,0 +1,21 @@
+* 
+
+```
+class Solution {
+public:
+    long long countBadPairs(vector<int>& nums) {
+        unordered_map<int,int> ump;
+        int n=nums.size();
+        for(int i=0;i<n;i++){
+            nums[i]-=i;
+        }
+        long long ans=1ll*(n-1)*n/2;
+        for(auto x:nums){
+            ans-=ump[x];
+            ump[x]++;
+        }
+        return ans;
+    }
+};
+```
+

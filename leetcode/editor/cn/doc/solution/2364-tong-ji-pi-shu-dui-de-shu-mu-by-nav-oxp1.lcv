@@ -1,0 +1,45 @@
+> Problem: [2364. 统计坏数对的数目](https://leetcode.cn/problems/count-number-of-bad-pairs/description/)
+
+[TOC]
+
+# 思路
+
+对于每一个 $j$ ，计算无法构成坏数对的 $i$ 的数目。对于 $i < j$ ，一个数对并非坏数对，当且仅当
+
+$ j - i = nums_j - nums_i $
+
+对这个等式进行变形，将 $i$ 与 $j$ 移到同侧
+
+$ j - nums_j = i - nums_i $
+
+因此，一个 $j$ 对应的不坏数对的数目可以通过哈希表记录 $j - nums_j$ 值的数目来计算，然后数对总数减去不坏的数目得到对应的计数。
+
+# Code
+
+* []
+
+```Rust
+impl Solution {
+    pub fn count_bad_pairs(nums: Vec<i32>) -> i64 {
+        // Not bad:
+        //    j - i == nums[j] - nums[i]
+        // => j - nums[j] == i - nums[i]
+
+        use std::collections::HashMap;
+        let mut cnt = HashMap::new();
+        let mut ans = 0;
+
+        for (i, &num) in nums.iter().enumerate() {
+            let p = i as i32;
+            let not_bad = cnt.get(&(p - num)).copied().unwrap_or(0);
+            let bad = p - not_bad;
+            ans += bad as i64;
+
+            *cnt.entry(p - num).or_insert(0) += 1;
+        }
+
+        ans
+    }
+}
+```
+
